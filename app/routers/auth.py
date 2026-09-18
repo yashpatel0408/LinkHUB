@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.deps import get_current_user
 from app.core.security import (
     hash_password,
     verify_password,
@@ -31,8 +32,8 @@ def _set_refresh_cookie(response: Response, token: str):
     response.set_cookie(
         key=REFRESH_COOKIE_NAME,
         value=token,
-        httponly=True,      # JS isse access nahi kar sakta — XSS se bachata hai
-        secure=True,         # production me True rakhna (HTTPS zaroori)
+        httponly=True,
+        secure=True,
         samesite="lax",
         max_age=7 * 24 * 60 * 60,
         path="/auth",
@@ -57,7 +58,6 @@ def signup(payload: SignupRequest, response: Response, db: Session = Depends(get
     db.commit()
     db.refresh(user)
 
-    # Real email ki jagah simulate kar rahe hain (console me print)
     print(f"[SIMULATED EMAIL] Verify: /auth/verify-email?token={user.verification_token}")
 
     access_token = create_access_token(user.id)
@@ -89,9 +89,13 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     return TokenResponse(access_token=access_token)
 
 
+@router.get("/me")
+def get_me(current_user: User = Depends(get_current_user)):
+    return {"username": current_user.username, "email": current_user.email}
+
+
 @router.post("/refresh", response_model=TokenResponse)
 def refresh(request: Request, response: Response, db: Session = Depends(get_db)):
-    """httpOnly cookie se refresh token padhta hai, naya pair issue karta hai (rotation)."""
     refresh_token = request.cookies.get(REFRESH_COOKIE_NAME)
     if not refresh_token:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "No refresh token provided")
@@ -120,7 +124,6 @@ def logout(response: Response):
 @router.post("/forgot-password")
 def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == payload.email).first()
-    # Hamesha 200 return karo, chahe user mile ya na mile — isse pata nahi chalta konse emails registered hain
     if user:
         user.reset_token = secrets.token_urlsafe(32)
         user.reset_token_expires = datetime.now(timezone.utc) + timedelta(minutes=30)

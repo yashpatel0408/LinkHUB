@@ -66,3 +66,32 @@ SQLite is used for simplicity (`linkhub.db`, auto-created on first run). Tables:
 - Email verification and password reset emails are **simulated** (printed to console) rather than actually sent, per assessment scope.
 - SQLite is used instead of a production database for simplicity; the code uses SQLAlchemy ORM so switching to PostgreSQL/MySQL only requires changing `DATABASE_URL`.
 - QR codes are generated on-demand and not stored/cached.
+
+## Frontend
+
+- **Tech:** React (Vite), Tailwind CSS v4, React Router, Axios, Recharts
+- **Location:** `/frontend`
+
+### Frontend Setup
+
+1. Navigate to the frontend folder:
+```bash
+   cd frontend
+```
+2. Install dependencies:
+```bash
+   npm install
+```
+3. Run the dev server:
+```bash
+   npm run dev
+```
+4. Open `http://localhost:5173`
+
+### Frontend Pages
+- `/` — Landing page
+- `/login`, `/signup` — Auth
+- `/dashboard` — Link creation, list, QR code, delete (protected)
+- `/dashboard/analytics/:linkId` — Per-link analytics with charts (protected)
+- `/dashboard/bio` — Bio profile editor (protected)
+- `/bio/:username` — Public bio page (no login required)
