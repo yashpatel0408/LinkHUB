@@ -24,7 +24,8 @@ A URL shortening engine with custom vanity slugs, click analytics, and a customi
 
 1. Clone the repo and navigate into it:
 ```bash
-   git clone <your-repo-url>
+   git clone 
+   https://github.com/yashpatel0408/LinkHUB.git
    cd linkhub
 ```
 
